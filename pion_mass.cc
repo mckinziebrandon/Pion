@@ -18,36 +18,45 @@ std::fstream& GotoLine(std::fstream&, int);
 void pion_mass()
 {
     using namespace std;
-    int fileNumber(1000), time(0);
+    const int n_slices  = 63;
+    const int n_files   = 1; 
+
+    int time(0);
     double cfunc(2);
     string line;
 
     TFile* outFile  = new TFile("outFile.root", "RECREATE");
     TNtuple* t      = new TNtuple("t", "t", "time:cfunc");
-    TString fName   = "../ID32_mu0.0042_tsrc0/nuc3pt.dat.";
-    fName  += fileNumber;
+    TString baseName= "../ID32_mu0.0042_tsrc0/nuc3pt.dat.";
 
     fstream inFile;
-    cout << "\n\nOpening " << fName << " . . . \n";
-    inFile.open(fName.Data());
-
-    // organize data from files into TNtuples
-    if (inFile.is_open())
+    TString fileName;
+    int fileNumber(1000);
+    for (int i = 1; i <= n_files; i++)  // begin file loop
     {
-        GotoLine(inFile, 112);  // start of pion data
-        while (time < 63)       // 63 timeslices total
+        fileName  = baseName;
+        fileName += fileNumber;
+        cout << "\n\nOpening " << fileName << " . . . \n";
+        inFile.open(fileName.Data());
+        if (inFile.is_open())
         {
-            inFile >> time >> cfunc;
-            t->Fill(time, cfunc);
-            cout << "time: " << time << "\t";
-            cout << "cfunc: " << cfunc << endl;
-            GotoLine(inFile, time + 113);
+            GotoLine(inFile, 112);  // start of pion data
+            while (time < n_slices)
+            {
+                (inFile >> time >> cfunc).ignore(100, '\n');
+                t->Fill(time, cfunc);
+
+                cout << "time: " << time << "\t";
+                cout << "cfunc: " << cfunc << endl;
+            }
         }
-    }
-    else
-    {
-        cout << "\nError: unable to open file\n";
-    }
+        else
+        {
+            cout << "\nError: unable to open file\n";
+        }
+
+        fileNumber += 8;
+    } // end file loop
 
     cout << "\n\n";
     t->Draw("cfunc:time");
