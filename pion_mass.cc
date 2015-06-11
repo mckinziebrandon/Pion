@@ -28,47 +28,56 @@ void pion_mass()
     const int n_slices  = 63;
     const int n_files   = 1; 
 
-    string line;
     coordinates * coords = new coordinates;
     coords->time = 0; coords->cfunc = 0;
-    TTree * tree = new TTree("tree", "tree");
-    tree->Branch("file1", &coords);
-
-    TFile* outFile  = new TFile("outFile.root", "RECREATE");
-    TString baseName= "../ID32_mu0.0042_tsrc0/nuc3pt.dat.";
 
     fstream inFile;
+    TFile* outFile  = new TFile("outFile.root", "RECREATE");
+
     TString fileName;
+    TString baseName= "../ID32_mu0.0042_tsrc0/nuc3pt.dat.";
     int fileNumber(1000);
+    TTree * tree = new TTree("tree", "tree");
+//    TNtuple * tree = new TNtuple("tree", "tree", "time:cfunc");
+    TString branchName;
+
     for (int i = 1; i <= n_files; i++)  // --- begin file loop --- 
     {
-        fileName  = baseName;
-        fileName += fileNumber;
-        cout << "\n\nOpening " << fileName << " . . . \n";
+        // ----- (re)set file associations -----
+        fileName    = baseName;
+        fileName   += fileNumber;
+        branchName  = Form("file%d", fileNumber);
+        cout << "\nOpening " << fileName << " . . . \n";
         inFile.open(fileName.Data());
+        tree->Branch(branchName.Data(), &coords);
 
         if (inFile.is_open())
         {
             GotoLine(inFile, 112);  // start of pion data
-            while (coords->time < n_slices)
+            for (int j = 0; j <= n_slices; j++)
             {
-                (inFile >> coords->time >> coords->cfunc).ignore(100, '\n');
+                (inFile >> coords->time >> coords->cfunc).ignore(200, '\n');
                 tree->Fill(); 
-
-                cout << "time: " << coords->time << "\t";
-                cout << "cfunc: " << coords->cfunc << endl;
+                // could try saving each loop tree to ith ntuple in some ntuple array idk
+    //            cout << "time: " << coords->time << "\t";
+    //            cout << "cfunc: " << coords->cfunc << endl;
             }
         }
         else
         {
             cout << "\nError: unable to open file\n";
         }
+
+        tree->Write();
+        tree->DropBranchFromCache(branchName.Data());
+        inFile.close();
+        coords->time = 0; coords->cfunc = 0;
         fileNumber += 8;
     } // --- end file loop --- 
 
     cout << "\n\n";
     tree->StartViewer();
-    tree->Draw("cfunc:time");
+    //tree->Draw("cfunc:time");
     outFile->Write();
     
 }
