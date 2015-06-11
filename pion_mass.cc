@@ -11,9 +11,16 @@ Description:    Obtain pion mass via curve fitting the corresponding
 #include <limits>
 #include <cstdlib>
 #include "TNtuple.h"
+#include "TTree.h"
 #include "TFile.h"
 
 std::fstream& GotoLine(std::fstream&, int);
+
+struct coordinates
+{
+    int time;
+    double cfunc;
+};
 
 void pion_mass()
 {
@@ -21,46 +28,49 @@ void pion_mass()
     const int n_slices  = 63;
     const int n_files   = 1; 
 
-    int time(0);
-    double cfunc(2);
     string line;
+    coordinates * coords = new coordinates;
+    coords->time = 0; coords->cfunc = 0;
+    TTree * tree = new TTree("tree", "tree");
+    tree->Branch("file1", &coords);
 
     TFile* outFile  = new TFile("outFile.root", "RECREATE");
-    TNtuple* t      = new TNtuple("t", "t", "time:cfunc");
     TString baseName= "../ID32_mu0.0042_tsrc0/nuc3pt.dat.";
 
     fstream inFile;
     TString fileName;
     int fileNumber(1000);
-    for (int i = 1; i <= n_files; i++)  // begin file loop
+    for (int i = 1; i <= n_files; i++)  // --- begin file loop --- 
     {
         fileName  = baseName;
         fileName += fileNumber;
         cout << "\n\nOpening " << fileName << " . . . \n";
         inFile.open(fileName.Data());
+
         if (inFile.is_open())
         {
             GotoLine(inFile, 112);  // start of pion data
-            while (time < n_slices)
+            while (coords->time < n_slices)
             {
-                (inFile >> time >> cfunc).ignore(100, '\n');
-                t->Fill(time, cfunc);
+                (inFile >> coords->time >> coords->cfunc).ignore(100, '\n');
+                tree->Fill(); 
 
-                cout << "time: " << time << "\t";
-                cout << "cfunc: " << cfunc << endl;
+                cout << "time: " << coords->time << "\t";
+                cout << "cfunc: " << coords->cfunc << endl;
             }
         }
         else
         {
             cout << "\nError: unable to open file\n";
         }
-
         fileNumber += 8;
-    } // end file loop
+    } // --- end file loop --- 
 
     cout << "\n\n";
-    t->Draw("cfunc:time");
+    tree->StartViewer();
+    tree->Draw("cfunc:time");
     outFile->Write();
+    
 }
 
 std::fstream& GotoLine(std::fstream& file, int num)
