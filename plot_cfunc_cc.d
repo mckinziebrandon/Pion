@@ -1,7 +1,7 @@
 
 # DO NOT DELETE
 
-./plot_cfunc_cc.so: /usr/include/c++/4.8/iostream
+./plot_cfunc_cc.so: /usr/include/c++/4.8/iostream plot_cfunc.h
 ./plot_cfunc_cc.so: /usr/include/c++/4.8/fstream /usr/include/c++/4.8/string
 ./plot_cfunc_cc.so: /usr/include/c++/4.8/limits /usr/include/c++/4.8/cstdlib
 ./plot_cfunc_cc.so: /home/brandon/root/include/TNtuple.h
@@ -100,7 +100,7 @@
 ./plot_cfunc_cc.so: /home/brandon/root/include/TFormula.h
 ./plot_cfunc_cc.so: /home/brandon/root/include/TBits.h
 ./plot_cfunc_cc.so: /home/brandon/root/include/Math/ParamFunctor.h
-./plot_cfunc_cc.so: plot_cfunc.h /home/brandon/root/include/TMath.h
+./plot_cfunc_cc.so: /home/brandon/root/include/TMath.h
 ./plot_cfunc_cc.so: /home/brandon/root/include/TError.h
 ./plot_cfunc_cc.so: /usr/include/c++/4.8/algorithm
 ./plot_cfunc_cc.so: /home/brandon/root/include/RVersion.h /home/brandon/root/include/RConfig.h /home/brandon/root/include/TClass.h /home/brandon/root/include/TDictAttributeMap.h /home/brandon/root/include/TInterpreter.h /home/brandon/root/include/TROOT.h /home/brandon/root/include/TBuffer.h /home/brandon/root/include/TMemberInspector.h /home/brandon/root/include/TError.h /home/brandon/root/include/RtypesImp.h /home/brandon/root/include/TIsAProxy.h /home/brandon/root/include/TFileMergeInfo.h /home/brandon/root/include/TCollectionProxyInfo.h

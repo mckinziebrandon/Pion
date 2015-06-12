@@ -6,113 +6,104 @@ Description:
                 
 ==================================================================*/
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <limits>
-#include <cstdlib>
-#include "TNtuple.h"
-#include "TTree.h"
-#include "TFile.h"
-#include "TH1.h"
-#include "TH2.h"
-#include "TH2F.h"
-#include "TROOT.h"
-#include "TGraph.h"
-#include "TGraphErrors.h"
-#include "TDirectory.h"
-#include "TCanvas.h"
-#include "TF1.h"
 #include "plot_cfunc.h"
 
 void plot_cfunc()
 {
     using namespace std;
-    const int nFiles = 115;
-    const int nTimes = 64;
-    TFile * f = new TFile("outFile.root");
-    TTree * t = (TTree*)f->Get("tree");
 
-    Float_t time, cfunc;
-    t->SetBranchAddress("time", &time);
-    t->SetBranchAddress("cfunc", &cfunc);
-    int nEntries = (int)t->GetEntries();
-    Float_t x[64], y[64];
-    
-    // make array of tf1 containing each files thing.
-    // can get C(t) for each t then. 
+    TFile * f = new TFile("outFile.root");
     TFile * outFile = new TFile("plot_cfunc.root", "RECREATE");
     outFile->cd();
-    TH1F * CFunction[nFiles];
-    int file_count = 0;
+
+    Float_t time, cfunc;
+    TTree * tree = (TTree*)f->Get("tree");
+    tree->SetBranchAddress("time", &time);
+    tree->SetBranchAddress("cfunc", &cfunc);
+
+    Double_t mean[nTimes];
+    Double_t entry[nFiles];
+    Double_t error[nTimes];
+
+    Int_t nEntries = (Int_t)tree->GetEntries();
+    Int_t file_count = 0;
     TString filename;
-    filename = "file";
+    filename  = "file";
     filename += file_count;
-    CFunction[0] = new TH1F(filename.Data(), filename.Data(), 64, -0.5, 63.5);
-    for (int i = 0; i < nEntries; i++)
+    
+    TH1F * CFunction[nFiles];
+    CFunction[0] = new TH1F(filename.Data(), filename.Data(), nTimes, -0.5, 63.5);
+   
+
+    // --------------- BEGIN CFunction-fill loop ---------------
+ //   Float_t CFunc_Time_File[nTimes][nFiles]; // for easy access to all data points
+  //  Int_t count(0);
+    for (Int_t i = 0; i < nEntries; i++) 
     {
-        t->GetEntry(i);
+        tree->GetEntry(i);
+//        CFunc_Time_File[time][count] = cfunc;
 
-        CFunction[file_count]->SetBinContent((i%64)+1, cfunc);
+        CFunction[file_count]->SetBinContent((i%nTimes)+1, cfunc);
 
-        if ((i%64) + 1 == 64)
+        if ((i%nTimes) + 1 == nTimes)
         {
-            if (file_count == nFiles) break;
+            if (file_count == nFiles)
+            {
+                break;
+            }
+
             CFunction[file_count]->Write();
+
             file_count++;
-
-            filename = "file";
+            filename  = "file";
             filename += file_count;
-            CFunction[file_count] = new TH1F(filename.Data(), filename.Data(), 64, -0.5, 63.5);
+            CFunction[file_count] = new TH1F(filename.Data(), filename.Data(), nTimes, -0.5, 63.5);
         }
-    }
+    } 
+    // --------------- END CFunction-fill loop ---------------
 
-    double mean[nTimes];
-    double entry[nFiles];
-    double error[nTimes];
-    for (int t = 0; t < nTimes; t++)
+    /*********************************************************************************************************
+                                   PART 1: "STANDARD" STATISTICAL METHOD
+    *********************************************************************************************************/
+    // --------------- BEGIN statistics loop ---------------
+    for (Int_t t = 0; t < nTimes; t++) 
     {
         mean[t] = 0;
-        for (int c = 0; c < nFiles; c++)
+        for (Int_t c = 0; c < nFiles; c++)
         {
             entry[c] = CFunction[c]->GetBinContent(t+1);
             mean[t] += entry[c];
             if (c == nFiles-1)
             {
-                mean[t]  = mean[t] / (double)nTimes;
-                error[t] = ComputeError(nFiles, mean[t], entry);
+                mean[t]  = mean[t] / (Double_t)nTimes;
+                error[t] = StandardError(nFiles, mean[t], entry);
             }
         }
         cout << "mean[" << t << "]: " << mean[t];
         cout << "\terr["  << t << "]: " << error[t] << endl;
-    }
+    } 
+    // --------------- END statistics loop ---------------
 
-    Float_t xx[64], yy[64], e[64];
-    for (int i = 0; i < nTimes; i ++)
+    Float_t x[nTimes], y[nTimes], err[nTimes];
+    for (Int_t i = 0; i < nTimes; i ++)
     {
-        xx[i] = i;
-        yy[i] = (Float_t)mean[i];
-        e[i]  = error[i];
+        x[i] = i;
+        y[i] = mean[i];
+        err[i] = error[i];
     }
 
-    TGraph * g = new TGraphErrors(nTimes, xx, yy, NULL, e);
+    TGraph * g = new TGraphErrors(nTimes, x, y, NULL, err);
     g->SetTitle("Pion Correlation Function; time; c(t)");
     g->GetXaxis()->CenterTitle();
     g->GetYaxis()->CenterTitle();
-    g->Draw("AP");
+    g->Write();
+
+    /*********************************************************************************************************
+                                   PART 2: "JACKNIFE" STATISTICAL METHOD
+    *********************************************************************************************************/
 
 
-    /*
-    TCanvas * temp = new TCanvas();
-    temp->cd();
-    t->Draw("cfunc:time>>graph");
-    temp->Close();
-    TH2F * g = (TH2F*)gDirectory->Get("graph");
-    g->SetTitle("Pion Two-Point Correlation Function; x; y");
-    g->GetXaxis()->CenterTitle();
-    g->GetYaxis()->CenterTitle();
-    //g->Fit();
-    g->Draw("col");
-    */
 
     gROOT->ForceStyle();
+    outFile->Close();
 }
