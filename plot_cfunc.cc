@@ -35,11 +35,12 @@ void plot_cfunc()
     t->Draw("cfunc:time>>graph");
     temp->Close();
 
-    TGraph * g = (TGraph*)gDirectory->Get("graph");
+    TH2F * g = (TH2F*)gDirectory->Get("graph");
     g->SetTitle("Pion Two-Point Correlation Function; x; y");
     g->GetXaxis()->CenterTitle();
-    g->GetXaxis()->CenterTitle();
-    g->Fit();
+    g->GetYaxis()->CenterTitle();
+    //g->Fit();
+    g->Draw("col");
 
     gROOT->ForceStyle();
 }
