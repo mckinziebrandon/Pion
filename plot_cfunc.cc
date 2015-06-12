@@ -18,13 +18,17 @@ Description:
 #include "TH2F.h"
 #include "TROOT.h"
 #include "TGraph.h"
+#include "TGraphErrors.h"
 #include "TDirectory.h"
 #include "TCanvas.h"
 #include "TF1.h"
+#include "plot_cfunc.h"
 
 void plot_cfunc()
 {
     using namespace std;
+    const int nFiles = 115;
+    const int nTimes = 64;
     TFile * f = new TFile("outFile.root");
     TTree * t = (TTree*)f->Get("tree");
 
@@ -38,31 +42,64 @@ void plot_cfunc()
     // can get C(t) for each t then. 
     TFile * outFile = new TFile("plot_cfunc.root", "RECREATE");
     outFile->cd();
-    TGraph * CFunction[165];
+    TH1F * CFunction[nFiles];
     int file_count = 0;
-    bool need_new_file = true;
     TString filename;
+    filename = "file";
+    filename += file_count;
+    CFunction[0] = new TH1F(filename.Data(), filename.Data(), 64, -0.5, 63.5);
     for (int i = 0; i < nEntries; i++)
     {
         t->GetEntry(i);
 
-        x[i%64] = i%64;
-        y[i%64] = cfunc;
+        CFunction[file_count]->SetBinContent((i%64)+1, cfunc);
 
-        if (i%63 == 0 && i!=0)
+        if ((i%64) + 1 == 64)
         {
+            if (file_count == nFiles) break;
+            CFunction[file_count]->Write();
+            file_count++;
+
             filename = "file";
             filename += file_count;
-            CFunction[file_count] = new TGraph(64, x, y);
-            CFunction[file_count]->Write();
-            cout << "\n file #" << file_count << " has "
-                 << CFunction[file_count]->GetN() << " entries.";
-            file_count++;
+            CFunction[file_count] = new TH1F(filename.Data(), filename.Data(), 64, -0.5, 63.5);
         }
     }
 
-    cout << "Total graphs made: " << file_count << endl;
-    cout << "\n nEntries / 64 = " << nEntries / 64 << endl;
+    double mean[nTimes];
+    double entry[nFiles];
+    double error[nTimes];
+    for (int t = 0; t < nTimes; t++)
+    {
+        mean[t] = 0;
+        for (int c = 0; c < nFiles; c++)
+        {
+            entry[c] = CFunction[c]->GetBinContent(t+1);
+            mean[t] += entry[c];
+            if (c == nFiles-1)
+            {
+                mean[t]  = mean[t] / (double)nTimes;
+                error[t] = ComputeError(nFiles, mean[t], entry);
+            }
+        }
+        cout << "mean[" << t << "]: " << mean[t];
+        cout << "\terr["  << t << "]: " << error[t] << endl;
+    }
+
+    Float_t xx[64], yy[64], e[64];
+    for (int i = 0; i < nTimes; i ++)
+    {
+        xx[i] = i;
+        yy[i] = (Float_t)mean[i];
+        e[i]  = error[i];
+    }
+
+    TGraph * g = new TGraphErrors(nTimes, xx, yy, NULL, e);
+    g->SetTitle("Pion Correlation Function; time; c(t)");
+    g->GetXaxis()->CenterTitle();
+    g->GetYaxis()->CenterTitle();
+    g->Draw("AP");
+
 
     /*
     TCanvas * temp = new TCanvas();
