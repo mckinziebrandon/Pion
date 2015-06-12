@@ -37,7 +37,7 @@ BrandonStyle->SetDrawOption("col");
 
 // Marker options
 BrandonStyle->SetMarkerStyle(20);
-BrandonStyle->SetMarkerSize(10);
+//BrandonStyle->SetMarkerSize(10);
 BrandonStyle->SetMarkerColor(kRed+2);
 
 // Set Colors
