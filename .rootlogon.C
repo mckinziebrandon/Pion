@@ -20,35 +20,37 @@ BrandonStyle->SetLabelFont(22,"xyz");
 BrandonStyle->SetTitleOffset(1.2,"y");
 
 // Default Canvas Options
-BrandonStyle->SetCanvasColor(14); // canvas...
-BrandonStyle->SetCanvasBorderMode(1);
+BrandonStyle->SetCanvasColor(kWhite); // canvas...
+BrandonStyle->SetCanvasBorderMode(0);
 BrandonStyle->SetCanvasDefH(600);
 BrandonStyle->SetCanvasDefW(800);
 
 // Default Pad Options
-BrandonStyle->SetPadColor(33);
+BrandonStyle->SetPadColor(kWhite);
 BrandonStyle->SetPadGridX(1); // grids, tickmarks
 BrandonStyle->SetPadGridY(1);
-BrandonStyle->SetFrameBorderMode(-1);
+BrandonStyle->SetFrameBorderMode(0);
 BrandonStyle->SetFrameBorderSize(5);
 
 // Default Object Options
 BrandonStyle->SetDrawOption("col");
 
 // Marker options
-BrandonStyle->SetMarkerStyle(20);
-//BrandonStyle->SetMarkerSize(10);
-BrandonStyle->SetMarkerColor(kRed+2);
+BrandonStyle->SetMarkerStyle(22);
+BrandonStyle->SetMarkerSize(1);
+BrandonStyle->SetMarkerColor(kRed+1);
 
 // Set Colors
 const Int_t NRGBs = 5;
 const Int_t NCont = 256;
 Int_t MyPalette[NCont];
-Double_t stops[NRGBs] = { 0.00, 0.30, 0.61, 0.84, 1.00 };
-Double_t red[NRGBs] = { 0.00, 0.00, 0.57, 0.90, 0.51 };
-Double_t green[NRGBs] = { 0.00, 0.65, 0.95, 0.20, 0.00 };
-Double_t blue[NRGBs] = { 0.51, 0.55, 0.15, 0.00, 0.10 };
+
+Double_t stops[NRGBs]   = { 0.00, 0.30, 0.61, 0.84, 1.00 };
+Double_t red[NRGBs]     = { 0.00, 0.00, 0.57, 0.90, 0.51 };
+Double_t green[NRGBs]   = { 0.00, 0.65, 0.95, 0.20, 0.00 };
+Double_t blue[NRGBs]    = { 0.51, 0.55, 0.15, 0.00, 0.10 };
 Int_t FI = TColor::CreateGradientColorTable(NRGBs, stops, red, green, blue,NCont);
+
 for (Int_t i=0;i<NCont;i++) MyPalette[i] = FI+i;
 BrandonStyle->SetPalette(256, MyPalette);
 BrandonStyle->SetNumberContours(256);

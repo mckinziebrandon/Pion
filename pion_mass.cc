@@ -16,20 +16,12 @@ Description:    Obtain pion mass via curve fitting the corresponding
 
 std::fstream& GotoLine(std::fstream&, int);
 
-struct coordinates
-{
-    int time;
-    double cfunc;
-};
-
 void pion_mass()
 {
     using namespace std;
     const int n_slices  = 63;
     const int n_files   = 165; 
 
-//    coordinates * coords = new coordinates;
- //   coords->time = 0; coords->cfunc = 0;
     int time(0); double cfunc(0);
 
     fstream inFile;
@@ -38,7 +30,6 @@ void pion_mass()
     TString fileName;
     TString baseName= "../ID32_mu0.0042_tsrc0/nuc3pt.dat.";
     int fileNumber(1000);
-//    TTree * tree = new TTree("tree", "tree");
     TNtuple * tree = new TNtuple("tree", "tree", "time:cfunc");
     TString branchName;
 
@@ -50,7 +41,6 @@ void pion_mass()
         branchName  = Form("file%d", fileNumber);
         cout << "\nOpening " << fileName << " . . . \n";
         inFile.open(fileName.Data());
-      //  tree->Branch(branchName.Data(), &coords);
 
         if (inFile.is_open())
         {
@@ -66,15 +56,11 @@ void pion_mass()
             cout << "\nError: unable to open file\n";
         }
 
-//        tree->Write();
-//        tree->DropBranchFromCache(branchName.Data());
         inFile.close();
-        //coords->time = 0; coords->cfunc = 0;
         fileNumber += 8;
     } // --- end file loop --- 
 
     cout << "\n\n";
- //   tree->StartViewer();
     tree->Draw("cfunc:time");
     cout << "\nEntries: " << tree->GetEntries() << endl;
     outFile->Write();
